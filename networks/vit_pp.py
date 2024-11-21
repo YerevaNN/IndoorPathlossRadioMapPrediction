@@ -1,8 +1,8 @@
-from typing import Literal, Optional
+from typing import Optional
 
 import torch
 import torch.nn as nn
-from transformers import CLIPVisionConfig, CLIPVisionModel
+from transformers import Dinov2Config, Dinov2Model
 from transformers.modeling_outputs import BaseModelOutputWithPooling
 
 
@@ -11,10 +11,8 @@ class ViTPlusPlus(nn.Module):
     def __init__(
         self, mlp_input_dim: int, image_size: int, v_num_channels: int, v_patch_size: int,
         v_hidden_size: int, v_num_hidden_layers: int, v_num_attention_heads: int, pretrained: str,
-        model_type: Literal["clip", "dino_v2"]
     ):
         super().__init__()
-        self.model_type = model_type
         self.v_num_layers = v_num_hidden_layers
         vit_config = dict(
             image_size=image_size,
@@ -22,9 +20,9 @@ class ViTPlusPlus(nn.Module):
             hidden_size=v_hidden_size, num_hidden_layers=v_num_hidden_layers,
             num_attention_heads=v_num_attention_heads, output_hidden_states=True
         )
-        self.vit = CLIPVisionModel(CLIPVisionConfig(**vit_config))
+        self.vit = Dinov2Model(Dinov2Config(**vit_config))
         if pretrained:
-            self.vit: CLIPVisionModel = self.vit.from_pretrained(pretrained, output_hidden_states=True)
+            self.vit: Dinov2Model = self.vit.from_pretrained(pretrained, output_hidden_states=True)
         
         self.mlp = nn.Sequential(
             nn.Linear(mlp_input_dim, 256),
@@ -49,10 +47,7 @@ class ViTPlusPlus(nn.Module):
         if pixel_values is None:
             raise ValueError("You have to specify pixel_values")
         
-        sequence_embedding = self.mlp(sequence)
-        
-        img_embeddings = self.vit.vision_model.embeddings(pixel_values)
-        img_embeddings = self.vit.vision_model.pre_layrnorm(img_embeddings)
+        img_embeddings = self.vit.embeddings(pixel_values, bool_masked_pos=None)
         
         mask = None
         embeddings = img_embeddings
@@ -63,14 +58,14 @@ class ViTPlusPlus(nn.Module):
             return_dict=return_dict,
         )
         
-        encoder_params["inputs_embeds"] = embeddings
-        encoder_params["attention_mask"] = None if mask is None else mask.unsqueeze(1).to(torch.bool)
-        encoder_outputs = self.vit.vision_model.encoder(**encoder_params)
+        encoder_params["hidden_states"] = embeddings
+        encoder_params["head_mask"] = None if mask is None else (
+            mask.unsqueeze(0).repeat(self.v_num_layers, 1, 1, 1).unsqueeze(2)
+        )
+        encoder_outputs = self.vit.encoder(**encoder_params)
         
         last_hidden_state = encoder_outputs[0]
         pooled_output = last_hidden_state[:, 0, :]
-        
-        pooled_output = self.vit.vision_model.post_layernorm(pooled_output)
         
         if not return_dict:
             return (last_hidden_state, pooled_output) + encoder_outputs[1:]
