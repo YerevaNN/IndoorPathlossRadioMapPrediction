@@ -1,11 +1,11 @@
-from typing import Literal, Optional
+from typing import Optional
 
 import torch
 import torch.nn as nn
 
-from networks.vit_pp import ViTPlusPlus
 from networks.step_neck import StepNeck
 from networks.upernet import FPN_fuse, PSPModule
+from networks.vit_pp import ViTPlusPlus
 from utils import unpatch
 
 
@@ -31,7 +31,6 @@ class ViTPlusPlusUPerNet(nn.Module):
         neck_scales: list[float],
         neck_size: list[int],
         pre_out_channels: int,
-        model_type: Literal["clip", "dino_v2"],
         pretrained: str,
     ):
         super().__init__()
@@ -50,7 +49,7 @@ class ViTPlusPlusUPerNet(nn.Module):
             mlp_input_dim=mlp_input_dim, image_size=image_size,
             v_num_channels=v_num_channels, v_patch_size=v_patch_size,
             v_hidden_size=v_hidden_size, v_num_hidden_layers=v_num_hidden_layers,
-            v_num_attention_heads=v_num_attention_heads, model_type=model_type, pretrained=pretrained,
+            v_num_attention_heads=v_num_attention_heads, pretrained=pretrained,
         )
         self.res_hidden_states = res_hidden_states
         self.use_upernet = use_upernet
@@ -88,8 +87,8 @@ class ViTPlusPlusUPerNet(nn.Module):
         
         # UperNet
         if self.use_upernet:
-            self.PPN = PSPModule(feature_channels[-1] + 2 * self.contest, bin_sizes=up_pool_scales)
-            self.FPN = FPN_fuse([fc + 2 * self.contest for fc in feature_channels])
+            self.PPN = PSPModule(feature_channels[-1] + 2, bin_sizes=up_pool_scales)
+            self.FPN = FPN_fuse([fc + 2 for fc in feature_channels])
         
         if feature_channels[0] // (v_patch_size ** 2) == feature_channels[0] / (v_patch_size ** 2):
             head_out = feature_channels[0] // (v_patch_size ** 2)
@@ -103,7 +102,7 @@ class ViTPlusPlusUPerNet(nn.Module):
             padding="same"
         )
         self.head = nn.Conv2d(
-            feature_channels[0] + 2 * self.contest if self.neck else head_out,
+            feature_channels[0] + 2 if self.neck else head_out,
             num_classes, kernel_size=3, padding="same"
         )
     
