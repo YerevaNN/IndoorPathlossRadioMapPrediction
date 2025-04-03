@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 import pandas as pd
 import torch
+from skimage.draw import line
+from skimage.morphology import skeletonize
 
 
 def unpatch(tensor: torch.Tensor, h: int, w: int, channels: int, patch_size: int) -> torch.Tensor:
@@ -52,3 +54,26 @@ def draw_radiation_pattern(radiation_pattern_csv_path, input_img, azimuth):
         color = float(values.iloc[i])
         cv2.drawContours(rp_img, [triangle_cnt], 0, color, -1)
     return rp_img
+
+
+def get_pl_estimation(img, freq):
+    # PL_0 = compute_pathloss_clamped(img, freq_MHz=freq / 1000)
+    L_o = 1
+    T = img[:, :, 1]  # Transmittance
+    d = img[:, :, 2]  # Distance
+    
+    d = np.maximum(d, 0.1)
+    
+    wall_map = T > 0
+    thin_wall_map = skeletonize(wall_map)
+    obstruction_map = thin_wall_map * T
+    tx_x, tx_y = d.argmin() // d.shape[1], d.argmin() % d.shape[1]
+    
+    O = np.zeros_like(d, dtype=int)
+    for i in range(d.shape[0]):
+        for j in range(d.shape[1]):
+            rr, cc = line(tx_x, tx_y, i, j)
+            O[i, j] = np.sum(obstruction_map[rr, cc])
+    
+    PL = O * L_o  # + PL_0  # - rp + 10 * n * np.log10(d)
+    return PL[..., np.newaxis]
