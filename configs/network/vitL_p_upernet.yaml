@@ -1,0 +1,25 @@
+_target_: src.networks.ViTPlusPlusUPerNet
+
+num_classes: 1
+image_size: 224
+
+mlp_input_dim: 19
+min_mlp_tokens: 10
+num_channels: 150
+
+v_num_channels: 3
+v_patch_size: 14
+v_hidden_size: 1024
+v_num_hidden_layers: 24
+v_num_attention_heads: 16
+mixer_out: null
+res_hidden_states: null
+use_upernet: True
+up_pool_scales: [ 1, 2, 4, 7 ]
+neck_input_dim: null
+neck_scales: null
+neck_size: null
+pre_out_channels: 6
+pretrained: openai/clip-vit-large-patch14
+
+model_type: clip

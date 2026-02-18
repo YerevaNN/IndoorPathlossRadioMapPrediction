@@ -1,0 +1,18 @@
+_target_: src.datamodules.ICASSPDatamodule
+
+name: icassp_task1
+batch_size: 8
+num_workers: 6
+
+data_path: ${oc.env:ICASSP_TASK1_PATH}
+orig_data_path: ${oc.env:ICASSP_ORIG_PATH}
+task_idx: 1
+
+idx_to_freq:
+  f1: 0.868
+max_freq: 10
+mixup_ratio: 0.75
+rotate_ratio: 0.0
+crop_ratio: 0.75
+crop_size: null
+channels_to_use: null

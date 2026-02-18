@@ -1,0 +1,15 @@
+_target_: src.algorithms.ICASSP
+
+name: icassp_task1
+
+out_norm: 160
+fixed_scale: False
+
+compiled:
+  _target_: src.utils.CompileParams
+  fullgraph: False
+  dynamic: null
+  backend: inductor
+  mode: null
+  options: null
+  disable: True

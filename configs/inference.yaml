@@ -1,0 +1,24 @@
+# @package _global_
+name: inference
+seed: 0
+print_config: True
+ignore_warnings: True
+
+
+checkpoint_path: ${oc.env:OUTPUT_DIR}/2025-03-27_22-16-14.374633/checkpoints/hard/epoch_0258.ckpt
+gpu: 1
+split: test
+prediction_dir: ${oc.env:PREDICTIONS_PATH}/${split}
+
+defaults:
+  - datamodule: icassp_task1
+  - algorithm: icassp
+  - network: vit_pp_upernet
+  - _self_
+
+  
+hydra:
+  run:
+    dir: ${oc.env:OUTPUT_DIR}/${now:%Y-%m-%d_%H-%M-%S}
+  job:
+    chdir: True

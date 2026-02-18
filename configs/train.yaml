@@ -1,0 +1,27 @@
+# @package _global_
+name: train
+seed: 0
+print_config: True
+ignore_warnings: True
+terminal_col: null
+terminal_row: 24
+
+defaults:
+  - datamodule: icassp_task1
+  - optimizer: adam
+  - scheduler: null
+  - algorithm: icassp
+  - network: vit_pp_upernet
+  - trainer: default
+  - callbacks: [ model_checkpoint_0 ]
+  - loggers: [ aim ]
+  - strategy: null
+  - _self_
+
+ckpt_path: null
+
+hydra:
+  run:
+    dir: ${oc.env:OUTPUT_DIR}/${now:%Y-%m-%d_%H-%M-%S.%f}
+  job:
+    chdir: True

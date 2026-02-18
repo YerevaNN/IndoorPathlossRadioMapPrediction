@@ -1,0 +1,14 @@
+# @package _global_
+name: evaluation
+seed: 0
+print_config: True
+ignore_warnings: True
+
+prediction_path: ${oc.env:PREDICTIONS_PATH}/test/2025-03-27_22-16-14.374633
+
+
+hydra:
+  run:
+    dir: ${oc.env:OUTPUT_DIR}/${now:%Y-%m-%d_%H-%M-%S}
+  job:
+    chdir: True

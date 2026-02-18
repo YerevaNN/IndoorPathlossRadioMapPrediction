@@ -1,0 +1,25 @@
+_target_: src.networks.ViTPlusPlusUPerNet
+
+num_classes: 1
+image_size: 224
+
+mlp_input_dim: 19
+min_mlp_tokens: 10
+num_channels: 3
+
+v_num_channels: 3
+v_patch_size: 14
+v_hidden_size: 768
+v_num_hidden_layers: 12
+v_num_attention_heads: 12
+mixer_out: null
+res_hidden_states: null  # [ 1, 5, 9, 13 ]
+use_upernet: True
+up_pool_scales: [ 1, 2, 4, 7 ]
+neck_input_dim: 256
+neck_scales: [ 14, 14, 14, 8, 8, 8, 4, 4, 4, 2, 2, 2, 1, 1 ]
+neck_size: [ 16, 16, 16, 32, 32, 32, 64, 64, 64, 128, 128, 128, 256, 256 ]
+pre_out_channels: null
+pretrained: facebook/dinov2-base
+
+model_type: dino_v2

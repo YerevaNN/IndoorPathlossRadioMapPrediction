@@ -1,0 +1,5 @@
+rich_progress_bar:
+  _target_: pytorch_lightning.callbacks.RichProgressBar
+  theme:
+    _target_: src.utils.ProgressBarTheme
+    metrics_format: .3e
